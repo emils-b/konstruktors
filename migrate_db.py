@@ -146,41 +146,42 @@ def mysql_migration_value_insert(name, exec_ts, exec_dt):
 		logger.error('Problem inserting migration values into DB: ' + str(e))
 		pass
 
-if mysql_check_if_table_exists("migrations") == []:
-	mysql_create_migrations_table()
-else:
-	logger.info("Migrations table exists")
+if __name__ == "__main__":
+	if mysql_check_if_table_exists("migrations") == []:
+		mysql_create_migrations_table()
+	else:
+		logger.info("Migrations table exists")
 
-migrations_list = []
-# Reading all migration file names into an array
-cur_dir = os. getcwd()
-migrations_files_list = os.listdir(cur_dir + "/migrations/")
-for f_name in migrations_files_list:
-	if f_name.endswith('.sql'):
-		migrations_list.append(f_name)
+	migrations_list = []
+	# Reading all migration file names into an array
+	cur_dir = os. getcwd()
+	migrations_files_list = os.listdir(cur_dir + "/migrations/")
+	for f_name in migrations_files_list:
+		if f_name.endswith('.sql'):
+			migrations_list.append(f_name)
 
-# Sorting list to be processed in the correct order
-migrations_list.sort(reverse=False)
+	# Sorting list to be processed in the correct order
+	migrations_list.sort(reverse=False)
 
-counter = 0
+	counter = 0
 
-for migration in migrations_list:
-	if mysql_check_if_migration_exists(migration) == 0:
-		with open(cur_dir + "/migrations/" + migration,'r') as file:
-			migration_sql = file.read()
-			logger.debug(migration_sql)
-			logger.info("Executing: " + str(migration))
-			if mysql_exec_any_sql(migration_sql) == 0:
-				mig_exec_ts = int(time.time())
-				mig_exec_dt = datetime.utcfromtimestamp(mig_exec_ts).strftime('%Y-%m-%d %H:%M:%S')
-				mysql_migration_value_insert(migration, mig_exec_ts, mig_exec_dt)
-				logger.info("OK")
-				counter += 1
-			else:
-				logger.error("Problem applying migration. Aborting")
-				break
+	for migration in migrations_list:
+		if mysql_check_if_migration_exists(migration) == 0:
+			with open(cur_dir + "/migrations/" + migration,'r') as file:
+				migration_sql = file.read()
+				logger.debug(migration_sql)
+				logger.info("Executing: " + str(migration))
+				if mysql_exec_any_sql(migration_sql) == 0:
+					mig_exec_ts = int(time.time())
+					mig_exec_dt = datetime.utcfromtimestamp(mig_exec_ts).strftime('%Y-%m-%d %H:%M:%S')
+					mysql_migration_value_insert(migration, mig_exec_ts, mig_exec_dt)
+					logger.info("OK")
+					counter += 1
+				else:
+					logger.error("Problem applying migration. Aborting")
+					break
 
-if counter == 0:
-	logger.info("No migrations to execute")	
+	if counter == 0:
+		logger.info("No migrations to execute")	
 
-	
+
