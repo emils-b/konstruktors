@@ -248,3 +248,4 @@ if __name__ == "__main__":
 	# prints info that could not get response from API
 	else:
 		logger.error("Unable to get response from API. Response code: " + str(r.status_code) + " | content: " + str(r.text))
+logger.info("Finished")
